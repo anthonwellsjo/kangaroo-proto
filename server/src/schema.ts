@@ -28,18 +28,26 @@ scalar DateTime
 
 const resolvers = {
   Query: {
-    allUsers: (context: Context) => {
-      console.log("find all users");
+    allUsers: (parent = null, args: UserArgs, context: Context) => {
+      return context.prisma.user.findMany({});
     },
   },
   Mutation: {
-    signupUser: (context: Context) => {
-      console.log("Create user");
-      }
+    signupUser: (parent = null, args: UserArgs, context: Context) => {
+      return context.prisma.user.create({
+        data: {
+          name: args.name,
+          email: args.email
+        }
+      })
     }
   }
+}
 
-
+interface UserArgs {
+  name: string,
+  email: string
+}
 
 
 export const schema = makeExecutableSchema({
