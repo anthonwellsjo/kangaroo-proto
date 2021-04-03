@@ -13,6 +13,9 @@ type Mutation {
 }
 type Query {
   allUsers: [User!]!
+  getUser(id: Int): User
+  allChildren: [Child!]!
+  getChildrenFromUser(userUniqueInput: UserUniqueInput): [Child]
 }
 enum SortOrder {
   asc
@@ -20,20 +23,39 @@ enum SortOrder {
 }
 type User {
   email: String!
+  name: String!
   id: Int!
-  name: String
+  children: Child
+}
+type Child {
+  id: Int!
+  name: String!
+  birthDate: DateTime!
+  parent: User!
+}
+input UserUniqueInput {
+  email: String
+  id: Int
 }
 scalar DateTime
 `
 
 const resolvers = {
   Query: {
-    allUsers: (parent = null, args: UserArgs, context: Context) => {
-      return context.prisma.user.findMany({});
+    allUsers: (parent = null, args: FindUserArgs, context: Context) => {
+      return context.prisma.user.findMany();
     },
+    getUser: (parent = null, args: FindUserArgs, context: Context) => {
+      return context.prisma.user.findFirst({
+        where: { id: args.id }
+      })
+    },
+    allChildren: (parent = null, args = null, context: Context) => {
+      return context.prisma.child.findMany();
+    }
   },
   Mutation: {
-    signupUser: (parent = null, args: UserArgs, context: Context) => {
+    signupUser: (parent = null, args: RegisterUserArgs, context: Context) => {
       return context.prisma.user.create({
         data: {
           name: args.name,
@@ -44,7 +66,12 @@ const resolvers = {
   }
 }
 
-interface UserArgs {
+
+interface FindUserArgs {
+  id: number,
+  email: string
+}
+interface RegisterUserArgs {
   name: string,
   email: string
 }
